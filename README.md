@@ -198,3 +198,7 @@ function animationLoop() {
 - [NASA - Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/)
 - [NASA - SBDB API](https://ssd-api.jpl.nasa.gov/doc/sbdb.html)
 - [NASA Center for Near Earth Object Studies - Fireballs](https://cneos.jpl.nasa.gov/fireballs/)
+- [ChatGPT](https://chatgpt.com/) - Asistencia con funciones auxiliares.
+
+## Créditos adicionales
+- [Outer Wilds - Timber Hearth](https://youtu.be/SPa8bPqQfmo?si=mWU8BQ1_AWHjs6UY) - Música de fondo
