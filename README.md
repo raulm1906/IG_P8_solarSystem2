@@ -8,7 +8,46 @@
 
 En esta práctica, se ha partido de la base y modificando en gran medida la prática anterior [P6-7 Sistema Solar](https://github.com/raulm1906/IG_P67_solar_system), centrándose en el representación de datos orbitales de diversos cuerpos del sistema solar.
 
-Para ello, se ha usado la [Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/) de la NASA para obtener los datos de varios asteroides y cometas del sistema solar. La intención inicial era hacer uso de su [API](https://ssd-api.jpl.nasa.gov/doc/sbdb.html), pero lamentablemente no permite su acceso directamente desde navegador, por lo que hubo que descargar los datos de los 20 cuerpos representados con un script bash.
+Para ello, se ha usado la [Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/) de la NASA para obtener los datos de varios asteroides y cometas del sistema solar. La intención inicial era hacer uso de su [API](https://ssd-api.jpl.nasa.gov/doc/sbdb.html), pero lamentablemente no permite su acceso directamente desde navegador, por lo que hubo que descargar los datos de los 20 cuerpos representados con un script bash. Esto permite modificar los cuerpos representados añadiendo o eliminando el correspondiente archivo `.json`, pudiendo obtenerse nuevos desde la URL `https://ssd-api.jpl.nasa.gov/sbdb.api?des=<DES>&phys-par=true` siendo `<DES>` la designación del cuerpo (ej.: "1P", "1221").
+
+*Script usado para la descarga de datos*
+```bash
+#!/bin/bash
+
+# Lista de objetos a descargar
+OBJECTS=("1" "2" "3" "1P" \
+  "3200" "133P" "176P" "238P" "259P" "288P" "324P" "358P" "2201" \
+  "343158" "887" "8013" "1221" "2340" "99942" "4179")
+
+# Carpeta donde se guardarán los JSON
+OUTPUT_DIR="sbdb_json"
+
+mkdir -p "$OUTPUT_DIR"
+
+echo "Descargando datos desde la Small-Body Database..."
+echo
+
+for OBJ in "${OBJECTS[@]}"; do
+    # Reemplazar caracteres no válidos en nombres de archivo
+    SAFE_NAME=$(echo "$OBJ" | tr '/:' '_' )
+
+    URL="https://ssd-api.jpl.nasa.gov/sbdb.api?des=${OBJ}&phys-par=true"
+
+    echo "→ Descargando $OBJ ..."
+    curl -s "$URL" -o "${OUTPUT_DIR}/${SAFE_NAME}.json"
+
+    if [ $? -eq 0 ]; then
+        echo "   Guardado en ${OUTPUT_DIR}/${SAFE_NAME}.json"
+    else
+        echo "Error descargando $OBJ"
+    fi
+
+    echo
+done
+
+echo "Proceso completado."
+
+```
 
 Para una mejor visualización, se han modificado las escalas de los cuerpos celestes, siendo los siguientes:
 - **Sol:** 1/50000
