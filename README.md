@@ -56,9 +56,11 @@ Para una mejor visualización, se han modificado las escalas de los cuerpos cele
 
 Todos los asteroides comparten la misma textura dado que la gran mayoría no disponen de una propia.
 
+Además, sobre el planeta Tierra se muestra la localización de eventos de bólidos reportados desde el 15 de Abril de 1988, con datos obtenidos del [CNEOS](https://cneos.jpl.nasa.gov/fireballs/) de la NASA.
+
 ### Uso de Inteligencia Artificial
 
-Debibo a la gran complejidad que trae representar las [órbitas de Kepler](https://en.wikipedia.org/wiki/Kepler_orbit) en un sistema 3D, se ha recurrido IA generativa para algunas funciones auxiliares como `solveEccentricAnomaly` y la generación de la matriz de rotación de cada grupo orbital.
+Debibo a la gran complejidad que trae representar las [órbitas de Kepler](https://en.wikipedia.org/wiki/Kepler_orbit) en un sistema 3D, se ha recurrido IA generativa para algunas funciones auxiliares como `solveEccentricAnomaly` y la generación de la matriz de rotación de cada grupo orbital. También se ha usado para el parser que extrae los datos del archivo `cneos_fireball_data.csv`.
 
 ## Estructura
 
@@ -70,16 +72,20 @@ Debibo a la gran complejidad que trae representar las [órbitas de Kepler](https
 
 - `grupo.js` – Crea grupos que representan la órbita de un planeta o asteroide.
 
+- `fireball.js` - Crea marcadores de eventos de bólido.
+
 - `data/` – Carpeta con archivos JSON de cuerpos menores (asteroides, cometas) obtenidos de la Small-Body Database.
 
 - `textures/` – Texturas para planetas, anillos y el fondo estelar.
 
 - `src/Timber_Hearth.mp3` – Música de fondo de la simulación.
 
+- `src/cneos_fireball_data.csv` - Archivo de datos sobre eventos de bólido.
+
 ## Controles
 
 - **Orbit controls:** orbitar alrededor del objetivo seleccionado.
-- **GUI:** seleccionar cuerpo objetivo y acelerar el tiempo.
+- **GUI:** seleccionar cuerpo objetivo, acelerar el tiempo y mostrar u ocultar los marcadores de bólidos.
 
 ## Estructura de objetos
 
@@ -108,6 +114,65 @@ const z = planetGroup.userData.s_minor_axis * Math.sin(E);
 ```
 - Se aplica la rotación orbital usando la `rotMatrix` para orientar correctamente la órbita 3D.
 
+## Localización de bólidos
+
+Cabecera del CSV:
+```js
+"Peak Brightness Date/Time (UT)","Latitude (deg.)","Longitude (deg.)","Altitude (km)","vx","vy","vz","Total Radiated Energy (J)","Calculated Total Impact Energy (kt)"
+```
+
+### Pasos para mostrar los bólidos
+
+1. Se crea un `THREE.group` llamado `fireballGroup` como hijo del objeto 3D de la Tierra, para así heredar su rotación y traslación:
+```js
+const fireballGroup = new THREE.Group();
+tierra.add(fireballGroup);
+```
+2. Cada marcador de fireball se representa como una pequeña esfera (`THREE.SphereGeometry`) de material `MeshBasicMaterial` para que no se vea afectado por la iluminación y con color naranja:
+
+```js
+function createFireballMarker(size = 0.01, color = 0xffaa00) {
+    const geo = new THREE.SphereGeometry(size, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({ color: color, emissive: color });
+    const m = new THREE.Mesh(geo, mat);
+    return m;
+}
+```
+3. La posición de cada evento se calcula a partir de la latitud y longitud usando la función `latLongToVector3`:
+```js
+const pos = latLongToVector3(lat, lon, earthRadius + offset);
+marker.position.copy(pos);
+```
+
+```js
+function latLongToVector3(lat, lon, radius = 0.63) {
+    // lat: grados norte positivos, lon: grados este positivos
+    // phi = colatitud, theta = longitud en radianes desplazada para que lon=0 esté en X+
+    const phi = THREE.MathUtils.degToRad(90 - lat);
+    const theta = THREE.MathUtils.degToRad(lon + 180);
+  
+    const x = -radius * Math.sin(phi) * Math.cos(theta);
+    const y =  radius * Math.cos(phi);
+    const z =  radius * Math.sin(phi) * Math.sin(theta);
+  
+    return new THREE.Vector3(x, y, z);
+}
+```
+
+4. Se añade el marcador al grupo:
+```js
+fireballGroup.add(marker);
+```
+
+### Carga de datos
+
+La carga de datos simplemente se realiza llamando a la función `loadFireballsFromCSV` desde `init()`, que es la única función necesaria de importar desde el archivo `fireball.js`. Además, se le debe pasar como argumentos el grupo al que añadir los objetos y la ruta del archivo:
+```js
+loadFireballsFromCSV(fireballGroup, "src/cneos_fireball_data.csv");
+```
+
+
+
 ## Animación
 
 **Estructura del loop principal:**
@@ -130,5 +195,6 @@ function animationLoop() {
 - [lil-gui - Guide](https://lil-gui.georgealways.com/)
 - [Wikipedia - Kepler orbit](https://en.wikipedia.org/wiki/Kepler_orbit)
 - [Wikipedia - Orbital elements](https://en.wikipedia.org/wiki/Orbital_elements)
-- [NASA Jet Propulsion Laboratory - Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/)
-- [NASA Jet Propulsion Laboratory - SBDB API](https://ssd-api.jpl.nasa.gov/doc/sbdb.html)
+- [NASA - Small-Body Database](https://ssd.jpl.nasa.gov/tools/sbdb_lookup.html#/)
+- [NASA - SBDB API](https://ssd-api.jpl.nasa.gov/doc/sbdb.html)
+- [NASA Center for Near Earth Object Studies - Fireballs](https://cneos.jpl.nasa.gov/fireballs/)

@@ -4,6 +4,7 @@ import { Asteroid } from "./asteroid.js";
 import { Grupo } from "./grupo.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { FlyControls } from "three/examples/jsm/controls/FlyControls";
+import { loadFireballsFromCSV } from "./fireball.js";
 import GUI from 'lil-gui'; 
 import fs from 'fs';
 import path from 'path';
@@ -140,6 +141,7 @@ function init() {
     "Plutón": pluto,
   };
 
+  // Asteroides y cometas
   const files = fs.readdirSync(DATA_DIR);
 
   files.forEach(file => {
@@ -156,6 +158,11 @@ function init() {
 
       };
   });
+
+  const fireballGroup = new THREE.Group();
+  tierra.add(fireballGroup);
+
+  loadFireballsFromCSV(fireballGroup, "src/cneos_fireball_data.csv");
 
   // Música de fondo
   const listener = new THREE.AudioListener();
@@ -174,17 +181,21 @@ function init() {
   orControls.target.set(-4, 0, 0)
   orControls.update();
 
+  // Parametros lil-gui
   params = {
     targetPlanet: tierra,
     timeScale: 101,
+    fireball: true,
   };
 
-  //Opciones
-  const contrPlanet = gui.add(params, "targetPlanet",objectsList);
-  contrPlanet.name("Planeta");
+  gui.add(params, "targetPlanet",objectsList).name("Planeta");
 
-  const contrTimeScale = gui.add(params, "timeScale", 1, 100000, 50);
-  contrTimeScale.name("Escala de tiempo");
+  gui.add(params, "timeScale", 1, 100000, 50).name("Escala de tiempo");
+
+  gui.add(params, "fireball").name("Mostrar bólidos").onChange(() => {
+    fireballGroup.visible = params.fireball;
+  });
+
 
 
   //Inicio tiempo
