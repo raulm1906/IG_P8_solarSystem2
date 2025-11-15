@@ -2,7 +2,7 @@
 ### Visualización de datos
 
 **Autor:** Raúl Marrero Marichal    
-**Enlace codesandbox:** https://codesandbox.io/p/sandbox/ig-practica-8-654lzy
+**Enlace codesandbox:** https://codesandbox.io/p/sandbox/ig-practica-8-654lzy  
 **Enlace al vídeo:** https://youtu.be/kjeSeNGMjcs
 
 # Desarrollo
